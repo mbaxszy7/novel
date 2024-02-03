@@ -69,7 +69,7 @@ Example:
 />
 ```
 
-To use this Novel in a project, you can run the following command to install the `novel-c` [NPM package](https://www.npmjs.com/package/novel):
+To use this Novel in a project, you can run the following command to install the `novel-c` [NPM package](https://www.npmjs.com/package/novel-c):
 
 ```
 npm i novel-c
