@@ -1,5 +1,10 @@
-import { BubbleMenu, BubbleMenuProps, isNodeSelection } from "@tiptap/react";
-import { FC, useState } from "react";
+import {
+  BubbleMenu,
+  BubbleMenuProps,
+  Editor,
+  isNodeSelection,
+} from "@tiptap/react";
+import { FC, useMemo, useState } from "react";
 import {
   BoldIcon,
   ItalicIcon,
@@ -11,49 +16,94 @@ import { NodeSelector } from "./node-selector";
 import { ColorSelector } from "./color-selector";
 import { LinkSelector } from "./link-selector";
 import { cn } from "@/lib/utils";
+import useNovelContext from "@/lib/hooks/useNovelContext";
 
 export interface BubbleMenuItem {
   name: string;
   isActive: () => boolean;
-  command: () => void;
+  // eslint-disable-next-line no-unused-vars
+  command: (editor?: Editor) => void;
   icon: typeof BoldIcon;
 }
 
-type EditorBubbleMenuProps = Omit<BubbleMenuProps, "children">;
+type DefaultBubbleMenuItem =
+  | "bold"
+  | "italic"
+  | "underline"
+  | "strike"
+  | "code"
+  | "link";
+
+export interface BubbleMenuConfig {
+  /**
+   * excludes default bubble menu item
+   */
+  exclude?: DefaultBubbleMenuItem[];
+  /**
+   * new bubble menu item to be added
+   */
+  add?: BubbleMenuItem[];
+}
+
+type EditorBubbleMenuProps = Omit<BubbleMenuProps, "children" | "editor"> & {
+  editor: Editor;
+};
 
 export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
-  const items: BubbleMenuItem[] = [
-    {
-      name: "bold",
-      isActive: () => props.editor.isActive("bold"),
-      command: () => props.editor.chain().focus().toggleBold().run(),
-      icon: BoldIcon,
-    },
-    {
-      name: "italic",
-      isActive: () => props.editor.isActive("italic"),
-      command: () => props.editor.chain().focus().toggleItalic().run(),
-      icon: ItalicIcon,
-    },
-    {
-      name: "underline",
-      isActive: () => props.editor.isActive("underline"),
-      command: () => props.editor.chain().focus().toggleUnderline().run(),
-      icon: UnderlineIcon,
-    },
-    {
-      name: "strike",
-      isActive: () => props.editor.isActive("strike"),
-      command: () => props.editor.chain().focus().toggleStrike().run(),
-      icon: StrikethroughIcon,
-    },
-    {
-      name: "code",
-      isActive: () => props.editor.isActive("code"),
-      command: () => props.editor.chain().focus().toggleCode().run(),
-      icon: CodeIcon,
-    },
-  ];
+  const { bubbleMenuItems } = useNovelContext();
+  const defaultitems: BubbleMenuItem[] = useMemo(
+    () => [
+      {
+        name: "bold",
+        isActive: () => props.editor.isActive("bold"),
+        command: () => props.editor.chain().focus().toggleBold().run(),
+        icon: BoldIcon,
+      },
+      {
+        name: "italic",
+        isActive: () => props.editor.isActive("italic"),
+        command: () => props.editor.chain().focus().toggleItalic().run(),
+        icon: ItalicIcon,
+      },
+      {
+        name: "underline",
+        isActive: () => props.editor.isActive("underline"),
+        command: () => props.editor.chain().focus().toggleUnderline().run(),
+        icon: UnderlineIcon,
+      },
+      {
+        name: "strike",
+        isActive: () => props.editor.isActive("strike"),
+        command: () => props.editor.chain().focus().toggleStrike().run(),
+        icon: StrikethroughIcon,
+      },
+      {
+        name: "code",
+        isActive: () => props.editor.isActive("code"),
+        command: () => props.editor.chain().focus().toggleCode().run(),
+        icon: CodeIcon,
+      },
+    ],
+    [props.editor]
+  );
+  const extendedItems = useMemo(() => {
+    const _items = [
+      ...defaultitems.filter(
+        (item) => !bubbleMenuItems?.exclude?.includes(item.name as any)
+      ),
+      ...(bubbleMenuItems?.add?.map((item) => ({
+        ...item,
+        command: () => item.command(props.editor),
+      })) ?? []),
+    ];
+
+    return _items;
+  }, [
+    defaultitems,
+    bubbleMenuItems?.add,
+    bubbleMenuItems?.exclude,
+    props.editor,
+  ]);
 
   const bubbleMenuProps: EditorBubbleMenuProps = {
     ...props,
@@ -90,7 +140,7 @@ export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
       className="novel-flex novel-w-fit novel-divide-x novel-divide-stone-200 novel-rounded novel-border novel-border-stone-200 novel-bg-white novel-shadow-xl"
     >
       <NodeSelector
-        editor={props.editor}
+        editor={props.editor!}
         isOpen={isNodeSelectorOpen}
         setIsOpen={() => {
           setIsNodeSelectorOpen(!isNodeSelectorOpen);
@@ -98,20 +148,22 @@ export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
           setIsLinkSelectorOpen(false);
         }}
       />
-      <LinkSelector
-        editor={props.editor}
-        isOpen={isLinkSelectorOpen}
-        setIsOpen={() => {
-          setIsLinkSelectorOpen(!isLinkSelectorOpen);
-          setIsColorSelectorOpen(false);
-          setIsNodeSelectorOpen(false);
-        }}
-      />
+      {!bubbleMenuItems?.exclude?.includes("link") && (
+        <LinkSelector
+          editor={props.editor!}
+          isOpen={isLinkSelectorOpen}
+          setIsOpen={() => {
+            setIsLinkSelectorOpen(!isLinkSelectorOpen);
+            setIsColorSelectorOpen(false);
+            setIsNodeSelectorOpen(false);
+          }}
+        />
+      )}
       <div className="novel-flex">
-        {items.map((item, index) => (
+        {extendedItems.map((item, index) => (
           <button
             key={index}
-            onClick={item.command}
+            onClick={() => item.command()}
             className="novel-p-2 novel-text-stone-600 hover:novel-bg-stone-100 active:novel-bg-stone-200"
             type="button"
           >
@@ -124,7 +176,7 @@ export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
         ))}
       </div>
       <ColorSelector
-        editor={props.editor}
+        editor={props.editor!}
         isOpen={isColorSelectorOpen}
         setIsOpen={() => {
           setIsColorSelectorOpen(!isColorSelectorOpen);

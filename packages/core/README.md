@@ -26,6 +26,49 @@
 </p>
 <br/>
 
+## Fork
+
+This project is an enhanced version of [Novel](https://novel.sh/), originally created by Steven Tey. I am forked it to introduce additional customization options.
+
+Added props
+| Prop | Type | Description | Default |
+| --------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `extraExtensions` | `{slashCommands: SlashCommandsConfig;bubbleMenuItems?: BubbleMenuConfig;}` | Extra slash commands and bubble menu items were added directly to the SlashCommand and BubbleMenu extensions. | undefined
+
+Example:
+
+```jsx
+<NovelEditor
+  extraExtensions={{
+    bubbleMenuItems: {
+      exclude: ["link"],
+      add: [
+        {
+          name: "custom",
+          isActive: () => false,
+          command: console.log,
+          icon: CodeIcon,
+        },
+      ],
+    },
+    slashCommands: {
+      exclude: ["To-do List"],
+      add: [
+        {
+          title: "Custom To-do List",
+          description: "Use AI to expand your thoughts.",
+          searchTerms: ["gpt"],
+          icon: <span>pty</span>,
+          command: ({ editor, range }: any) => {
+            editor.chain().focus().deleteRange(range).toggleTaskList().run();
+          },
+        },
+      ],
+    },
+  }}
+/>
+```
+
 ## Introduction
 
 [Novel](https://novel.sh/) is a Notion-style WYSIWYG editor with AI-powered autocompletions.

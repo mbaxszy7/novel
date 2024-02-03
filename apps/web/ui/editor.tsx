@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Editor as NovelEditor } from "novel";
+import { CodeIcon } from "lucide-react";
 
 export default function Editor() {
   const [saveStatus, setSaveStatus] = useState("Saved");
@@ -14,6 +15,38 @@ export default function Editor() {
       <NovelEditor
         onUpdate={() => {
           setSaveStatus("Unsaved");
+        }}
+        extraExtensions={{
+          bubbleMenuItems: {
+            exclude: ["link"],
+            add: [
+              {
+                name: "custom",
+                isActive: () => false,
+                command: console.log,
+                icon: CodeIcon,
+              },
+            ],
+          },
+          slashCommands: {
+            exclude: ["To-do List"],
+            add: [
+              {
+                title: "Custom To-do List",
+                description: "Use AI to expand your thoughts.",
+                searchTerms: ["gpt"],
+                icon: <span>pty</span>,
+                command: ({ editor, range }: any) => {
+                  editor
+                    .chain()
+                    .focus()
+                    .deleteRange(range)
+                    .toggleTaskList()
+                    .run();
+                },
+              },
+            ],
+          },
         }}
         onDebouncedUpdate={() => {
           setSaveStatus("Saving...");

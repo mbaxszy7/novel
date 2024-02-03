@@ -8,6 +8,9 @@ import TextStyle from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
 import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
+// import Document from "@tiptap/extension-document";
+// import Paragraph from "@tiptap/extension-paragraph";
+// import Text from "@tiptap/extension-text";
 import { Markdown } from "tiptap-markdown";
 import Highlight from "@tiptap/extension-highlight";
 import SlashCommand from "./slash-command";
@@ -16,8 +19,21 @@ import UploadImagesPlugin from "@/ui/editor/plugins/upload-images";
 import UpdatedImage from "./updated-image";
 import CustomKeymap from "./custom-keymap";
 import DragAndDrop from "./drag-and-drop";
+import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import css from "highlight.js/lib/languages/css";
+import js from "highlight.js/lib/languages/javascript";
+import ts from "highlight.js/lib/languages/typescript";
+import html from "highlight.js/lib/languages/xml";
+// load all highlight.js languages
+import { lowlight } from "lowlight";
+
+lowlight.registerLanguage("html", html);
+lowlight.registerLanguage("css", css);
+lowlight.registerLanguage("js", js);
+lowlight.registerLanguage("ts", ts);
 
 export const defaultExtensions = [
+  // https://tiptap.dev/docs/editor/api/extensions/starter-kit
   StarterKit.configure({
     bulletList: {
       HTMLAttributes: {
@@ -40,16 +56,9 @@ export const defaultExtensions = [
         class: "novel-border-l-4 novel-border-stone-700",
       },
     },
-    codeBlock: {
-      HTMLAttributes: {
-        class:
-          "novel-rounded-sm novel-bg-stone-100 novel-p-5 novel-font-mono novel-font-medium novel-text-stone-800",
-      },
-    },
+
     code: {
       HTMLAttributes: {
-        class:
-          "novel-rounded-md novel-bg-stone-200 novel-px-1.5 novel-py-1 novel-font-mono novel-font-medium novel-text-stone-900",
         spellcheck: "false",
       },
     },
@@ -141,4 +150,12 @@ export const defaultExtensions = [
   }),
   CustomKeymap,
   DragAndDrop,
+  // Document,
+  // Paragraph,
+  // Text,
+  CodeBlockLowlight.configure({
+    lowlight,
+    defaultLanguage: "plaintext",
+    languageClassPrefix: "language-",
+  }),
 ];

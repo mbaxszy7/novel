@@ -79,7 +79,7 @@ export const defaultEditorContent = {
     },
     {
       type: "codeBlock",
-      attrs: { language: null },
+      attrs: { language: "typescript" },
       content: [
         {
           type: "text",

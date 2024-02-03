@@ -10,12 +10,18 @@ import { useCompletion } from "ai/react";
 import { toast } from "sonner";
 import va from "@vercel/analytics";
 import { defaultEditorContent } from "./default-content";
-import { EditorBubbleMenu } from "./bubble-menu";
+import { BubbleMenuConfig, EditorBubbleMenu } from "./bubble-menu";
 import { getPrevText } from "@/lib/editor";
 import { ImageResizer } from "./extensions/image-resizer";
 import { EditorProps } from "@tiptap/pm/view";
 import { Editor as EditorClass, Extensions } from "@tiptap/core";
 import { NovelContext } from "./provider";
+import {
+  CommandItemProps,
+  SlashCommandsConfig,
+} from "./extensions/slash-command";
+
+export type SlashCommandItemProps = CommandItemProps;
 
 export default function Editor({
   completionApi = "/api/generate",
@@ -28,6 +34,7 @@ export default function Editor({
   debounceDuration = 750,
   storageKey = "novel__content",
   disableLocalStorage = false,
+  extraExtensions,
 }: {
   /**
    * The API route to use for the OpenAI completion API.
@@ -81,6 +88,11 @@ export default function Editor({
    * Defaults to false.
    */
   disableLocalStorage?: boolean;
+
+  extraExtensions?: {
+    slashCommands: SlashCommandsConfig;
+    bubbleMenuItems?: BubbleMenuConfig;
+  };
 }) {
   const [content, setContent] = useLocalStorage(storageKey, defaultValue);
 
@@ -96,7 +108,10 @@ export default function Editor({
   }, debounceDuration);
 
   const editor = useEditor({
-    extensions: [...defaultExtensions, ...extensions],
+    extensions: [
+      ...defaultExtensions,
+      ...(Array.isArray(extensions) ? extensions : []),
+    ],
     editorProps: {
       ...defaultEditorProps,
       ...editorProps,
@@ -205,6 +220,8 @@ export default function Editor({
     <NovelContext.Provider
       value={{
         completionApi,
+        slashCommands: extraExtensions?.slashCommands,
+        bubbleMenuItems: extraExtensions?.bubbleMenuItems,
       }}
     >
       <div
