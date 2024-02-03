@@ -10,7 +10,11 @@ import { useCompletion } from "ai/react";
 import { toast } from "sonner";
 import va from "@vercel/analytics";
 import { defaultEditorContent } from "./default-content";
-import { BubbleMenuConfig, EditorBubbleMenu } from "./bubble-menu";
+import {
+  BubbleMenuConfig,
+  EditorBubbleMenu,
+  BubbleMenuItem,
+} from "./bubble-menu";
 import { getPrevText } from "@/lib/editor";
 import { ImageResizer } from "./extensions/image-resizer";
 import { EditorProps } from "@tiptap/pm/view";
@@ -21,7 +25,11 @@ import {
   SlashCommandsConfig,
 } from "./extensions/slash-command";
 
+export type { BubbleMenuConfig } from "./bubble-menu";
+export type { SlashCommandsConfig } from "./extensions/slash-command";
+
 export type SlashCommandItemProps = CommandItemProps;
+export type BubbleMenuItemProps = BubbleMenuItem;
 
 export default function Editor({
   completionApi = "/api/generate",
