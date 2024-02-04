@@ -4,7 +4,7 @@ import {
   Editor,
   isNodeSelection,
 } from "@tiptap/react";
-import { FC, useMemo, useState } from "react";
+import { FC, FunctionComponent, useMemo, useState } from "react";
 import {
   BoldIcon,
   ItalicIcon,
@@ -23,7 +23,14 @@ export interface BubbleMenuItem {
   isActive: () => boolean;
   // eslint-disable-next-line no-unused-vars
   command: (editor?: Editor) => void;
-  icon: typeof BoldIcon;
+  /**
+   * when item is Icon indicator
+   */
+  icon?: typeof BoldIcon;
+  /**
+   * when item is a complex component
+   */
+  Item?: FunctionComponent<{ editor?: Editor }>;
 }
 
 type DefaultBubbleMenuItem =
@@ -134,6 +141,15 @@ export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
   const [isColorSelectorOpen, setIsColorSelectorOpen] = useState(false);
   const [isLinkSelectorOpen, setIsLinkSelectorOpen] = useState(false);
 
+  const compTypeItems = useMemo(
+    () => extendedItems.filter((item) => !!item.Item),
+    [extendedItems]
+  );
+  const iconTypeItem = useMemo(
+    () => extendedItems.filter((item) => !!item.icon),
+    [extendedItems]
+  );
+
   return (
     <BubbleMenu
       {...bubbleMenuProps}
@@ -159,8 +175,12 @@ export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
           }}
         />
       )}
+      {compTypeItems.map(({ Item, name }: any) => (
+        <Item key={name} />
+      ))}
+
       <div className="novel-flex">
-        {extendedItems.map((item, index) => (
+        {iconTypeItem.map((item: any, index) => (
           <button
             key={index}
             onClick={() => item.command()}
