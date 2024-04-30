@@ -5,13 +5,12 @@ import {
   ReactNode,
   useRef,
   useLayoutEffect,
-  useContext,
   useMemo,
 } from "react";
 import { Editor, Range, Extension } from "@tiptap/core";
 import Suggestion from "@tiptap/suggestion";
 import { ReactRenderer } from "@tiptap/react";
-import { useCompletion } from "ai/react";
+
 import tippy from "tippy.js";
 import {
   Heading1,
@@ -25,19 +24,17 @@ import {
   Code,
   CheckSquare,
 } from "lucide-react";
-import { LoadingCircle } from "@/ui/icons";
-import { toast } from "sonner";
+
 import va from "@vercel/analytics";
-import { Magic } from "@/ui/icons";
-import { getPrevText } from "@/lib/editor";
+
 import { startImageUpload } from "@/ui/editor/plugins/upload-images";
-import { NovelContext } from "../provider";
+
 import useNovelContext from "@/lib/hooks/useNovelContext";
 
 export interface CommandItemProps {
   title: string;
-  description: string;
-  icon: ReactNode;
+  description?: string;
+  icon?: ReactNode;
   searchTerms?: string[];
   /**
    * use [key] to sort command item
@@ -45,10 +42,11 @@ export interface CommandItemProps {
   key?: number;
   // eslint-disable-next-line no-unused-vars
   command: ({ editor, range }: CommandProps) => void;
+  // eslint-disable-next-line no-unused-vars
+  renderItem?: ({ editor, range }: CommandProps) => ReactNode;
 }
 
 type DefaultSlashCommand =
-  | "Continue writing"
   | "Text"
   | "To-do List"
   | "Heading 1"
@@ -74,6 +72,7 @@ export interface SlashCommandsConfig {
 export interface CommandProps {
   editor: Editor;
   range: Range;
+  selectedItem?: CommandItemProps;
 }
 
 const Command = Extension.create({
@@ -109,13 +108,6 @@ const Command = Extension.create({
 const getSuggestionItems = ({ query }: { query: string }) => {
   return (
     [
-      {
-        title: "Continue writing",
-        description: "Use AI to expand your thoughts.",
-        searchTerms: ["gpt"],
-        icon: <Magic className="novel-w-7" />,
-        key: 90,
-      },
       {
         title: "Text",
         description: "Just start typing with plain text.",
@@ -261,7 +253,7 @@ const getSuggestionItems = ({ query }: { query: string }) => {
       const search = query.toLowerCase();
       return (
         item.title.toLowerCase().includes(search) ||
-        item.description.toLowerCase().includes(search) ||
+        item.description?.toLowerCase().includes(search) ||
         (item.searchTerms &&
           item.searchTerms.some((term: string) => term.includes(search)))
       );
@@ -287,8 +279,6 @@ export const updateScrollView = (container: HTMLElement, item: HTMLElement) => {
 const CommandList = ({
   items,
   command,
-  editor,
-  range,
 }: {
   items: CommandItemProps[];
   command: any;
@@ -310,31 +300,6 @@ const CommandList = ({
   }, [items, slashCommands]);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const { completionApi } = useContext(NovelContext);
-
-  const { complete, isLoading } = useCompletion({
-    id: "novel",
-    api: completionApi,
-    onResponse: (response) => {
-      if (response.status === 429) {
-        toast.error("You have reached your request limit for the day.");
-        va.track("Rate Limit Reached");
-        return;
-      }
-      editor.chain().focus().deleteRange(range).run();
-    },
-    onFinish: (_prompt, completion) => {
-      // highlight the generated text
-      editor.commands.setTextSelection({
-        from: range.from,
-        to: range.from + completion.length,
-      });
-    },
-    onError: (e) => {
-      toast.error(e.message);
-    },
-  });
-
   const selectItem = useCallback(
     (index: number) => {
       const item = extendedItems[index];
@@ -342,20 +307,10 @@ const CommandList = ({
         command: item.title,
       });
       if (item) {
-        if (item.title === "Continue writing") {
-          if (isLoading) return;
-          complete(
-            getPrevText(editor, {
-              chars: 5000,
-              offset: 1,
-            })
-          );
-        } else {
-          command(item);
-        }
+        command(item);
       }
     },
-    [complete, isLoading, command, editor, extendedItems]
+    [command, extendedItems]
   );
 
   useEffect(() => {
@@ -418,11 +373,7 @@ const CommandList = ({
             onClick={() => selectItem(index)}
           >
             <div className="novel-flex novel-h-10 novel-w-10 novel-items-center novel-justify-center novel-rounded-md novel-border novel-border-stone-200 novel-bg-white">
-              {item.title === "Continue writing" && isLoading ? (
-                <LoadingCircle />
-              ) : (
-                item.icon
-              )}
+              {item.icon}
             </div>
             <div>
               <p className="novel-font-medium">{item.title}</p>

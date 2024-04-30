@@ -22,7 +22,7 @@ export interface BubbleMenuItem {
   name: string;
   isActive: () => boolean;
   // eslint-disable-next-line no-unused-vars
-  command: (editor?: Editor) => void;
+  command?: (editor?: Editor) => void;
   /**
    * when item is Icon indicator
    */
@@ -30,7 +30,11 @@ export interface BubbleMenuItem {
   /**
    * when item is a complex component
    */
-  Item?: FunctionComponent<{ editor?: Editor }>;
+  renderItem?: FunctionComponent<{
+    editor?: Editor;
+    shouldClose: boolean;
+    setIsOpen: () => void;
+  }>;
 }
 
 type DefaultBubbleMenuItem =
@@ -100,7 +104,7 @@ export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
       ),
       ...(bubbleMenuItems?.add?.map((item) => ({
         ...item,
-        command: () => item.command(props.editor),
+        command: () => item.command?.(props.editor),
       })) ?? []),
     ];
 
@@ -129,10 +133,14 @@ export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
     },
     tippyOptions: {
       moveTransition: "transform 0.15s ease-out",
+      onShow: () => {
+        setBubbleMenuClose(false);
+      },
       onHidden: () => {
         setIsNodeSelectorOpen(false);
         setIsColorSelectorOpen(false);
         setIsLinkSelectorOpen(false);
+        setBubbleMenuClose(true);
       },
     },
   };
@@ -140,9 +148,11 @@ export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
   const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
   const [isColorSelectorOpen, setIsColorSelectorOpen] = useState(false);
   const [isLinkSelectorOpen, setIsLinkSelectorOpen] = useState(false);
+  const [isBubbleMenuClose, setBubbleMenuClose] = useState(false);
+  const [opendAddedMenu, setOpendAddedMenu] = useState<string>();
 
   const compTypeItems = useMemo(
-    () => extendedItems.filter((item) => !!item.Item),
+    () => extendedItems.filter((item) => !!item.renderItem),
     [extendedItems]
   );
   const iconTypeItem = useMemo(
@@ -155,6 +165,28 @@ export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
       {...bubbleMenuProps}
       className="novel-flex novel-w-fit novel-divide-x novel-divide-stone-200 novel-rounded novel-border novel-border-stone-200 novel-bg-white novel-shadow-xl"
     >
+      {compTypeItems.map(({ renderItem, name }: any) => {
+        const Com = renderItem;
+        return (
+          <Com
+            key={name}
+            editor={props.editor}
+            setIsOpen={() => {
+              setIsLinkSelectorOpen(false);
+              setIsColorSelectorOpen(false);
+              setIsNodeSelectorOpen(false);
+              setOpendAddedMenu(name);
+            }}
+            shouldClose={
+              opendAddedMenu !== name ||
+              isBubbleMenuClose ||
+              isNodeSelectorOpen ||
+              isColorSelectorOpen ||
+              isLinkSelectorOpen
+            }
+          />
+        );
+      })}
       <NodeSelector
         editor={props.editor!}
         isOpen={isNodeSelectorOpen}
@@ -175,9 +207,6 @@ export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
           }}
         />
       )}
-      {compTypeItems.map(({ Item, name }: any) => (
-        <Item key={name} />
-      ))}
 
       <div className="novel-flex">
         {iconTypeItem.map((item: any, index) => (

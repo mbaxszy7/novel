@@ -26,6 +26,7 @@ import ts from "highlight.js/lib/languages/typescript";
 import html from "highlight.js/lib/languages/xml";
 // load all highlight.js languages
 import { lowlight } from "lowlight";
+import AICommand from "./ai-command";
 
 lowlight.registerLanguage("html", html);
 lowlight.registerLanguage("css", css);
@@ -126,6 +127,7 @@ export const defaultExtensions = [
     includeChildren: true,
   }),
   SlashCommand,
+  AICommand,
   TiptapUnderline,
   TextStyle,
   Color,

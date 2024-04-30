@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Editor as NovelEditor } from "novel";
-import { CodeIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Editor() {
@@ -22,57 +21,88 @@ export default function Editor() {
             // exclude: ["link"],
             add: [
               {
-                name: "custom",
-                isActive: () => false,
-                command: console.log,
-                icon: CodeIcon,
-              },
-              {
                 name: "Translate",
                 isActive: () => false,
-                command: console.log,
-                Item: ({ editor }) => (
-                  <div className="novel-relative">
-                    <button
-                      type="button"
-                      className="novel-flex novel-h-full novel-items-center novel-space-x-2 novel-px-3 novel-py-1.5 novel-text-sm novel-font-medium novel-text-stone-600 hover:novel-bg-stone-100 active:novel-bg-stone-200"
-                    >
-                      <p className="novel-text-base">↗</p>
-                      <p
-                        className={cn(
-                          "novel-underline novel-decoration-stone-400 novel-underline-offset-4",
-                          {
-                            "novel-text-blue-500": editor?.isActive("link"),
-                          },
-                        )}
+
+                renderItem: ({ editor, shouldClose, setIsOpen }) => {
+                  console.log("shouldClose", shouldClose, "CUST");
+                  return (
+                    <div className="novel-relative">
+                      <button
+                        onClick={() => setIsOpen()}
+                        type="button"
+                        className="novel-flex novel-h-full novel-items-center novel-space-x-2 novel-px-3 novel-py-1.5 novel-text-sm novel-font-medium novel-text-stone-600 hover:novel-bg-stone-100 active:novel-bg-stone-200"
                       >
-                        Link
-                      </p>
-                    </button>
-                  </div>
-                ),
+                        <p className="novel-text-base">↗</p>
+                        <p
+                          className={cn(
+                            "novel-underline novel-decoration-stone-400 novel-underline-offset-4",
+                            {
+                              "novel-text-blue-500": editor?.isActive("link"),
+                            },
+                          )}
+                        >
+                          Link cust
+                        </p>
+                      </button>
+                    </div>
+                  );
+                },
               },
-            ],
-          },
-          slashCommands: {
-            exclude: ["To-do List"],
-            add: [
+
               {
-                title: "Custom To-do List",
-                description: "Use AI to expand your thoughts.",
-                searchTerms: ["gpt"],
-                icon: <span>pty</span>,
-                command: ({ editor, range }: any) => {
-                  editor
-                    .chain()
-                    .focus()
-                    .deleteRange(range)
-                    .toggleTaskList()
-                    .run();
+                name: "AAA",
+                isActive: () => false,
+
+                renderItem: ({ editor, shouldClose, setIsOpen }) => {
+                  console.log("shouldClose", shouldClose, "AAA");
+                  return (
+                    <div className="novel-relative">
+                      <button
+                        onClick={() => setIsOpen()}
+                        type="button"
+                        className="novel-flex novel-h-full novel-items-center novel-space-x-2 novel-px-3 novel-py-1.5 novel-text-sm novel-font-medium novel-text-stone-600 hover:novel-bg-stone-100 active:novel-bg-stone-200"
+                      >
+                        <p className="novel-text-base">↗</p>
+                        <p
+                          className={cn(
+                            "novel-underline novel-decoration-stone-400 novel-underline-offset-4",
+                            {
+                              "novel-text-blue-500": editor?.isActive("link"),
+                            },
+                          )}
+                        >
+                          Link AAA
+                        </p>
+                      </button>
+                    </div>
+                  );
                 },
               },
             ],
           },
+          aiCommands: [
+            {
+              title: "input",
+              renderItem: () => (
+                <input
+                  className="m-2"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      console.log("pppppp");
+                    }
+                  }}
+                />
+              ),
+              command: () => {},
+            },
+            {
+              title: "ppp",
+              description: "pppp",
+              icon: "p",
+              command: () => {},
+            },
+          ],
         }}
         onDebouncedUpdate={() => {
           setSaveStatus("Saving...");

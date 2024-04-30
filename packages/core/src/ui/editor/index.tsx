@@ -24,6 +24,7 @@ import {
   CommandItemProps,
   SlashCommandsConfig,
 } from "./extensions/slash-command";
+import { AICommandsConfig } from "./extensions/ai-command";
 
 export type { BubbleMenuConfig } from "./bubble-menu";
 export type { SlashCommandsConfig } from "./extensions/slash-command";
@@ -98,8 +99,9 @@ export default function Editor({
   disableLocalStorage?: boolean;
 
   extraExtensions?: {
-    slashCommands: SlashCommandsConfig;
+    slashCommands?: SlashCommandsConfig;
     bubbleMenuItems?: BubbleMenuConfig;
+    aiCommands?: AICommandsConfig;
   };
 }) {
   const [content, setContent] = useLocalStorage(storageKey, defaultValue);
@@ -230,6 +232,7 @@ export default function Editor({
         completionApi,
         slashCommands: extraExtensions?.slashCommands,
         bubbleMenuItems: extraExtensions?.bubbleMenuItems,
+        aiCommands: extraExtensions?.aiCommands,
       }}
     >
       <div
